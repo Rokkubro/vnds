@@ -27,7 +27,7 @@ void warningCallback(png_structp png_ptr, png_const_charp warning_msg) {
 void (*pngErrorCallback) (png_structp png_ptr, png_const_charp error_msg) = &errorCallback;
 void (*pngWarningCallback) (png_structp png_ptr, png_const_charp warning_msg) = &warningCallback;
 
-bool pngGetBounds(char* data, int dataL, u16* w, u16* h) {
+bool pngGetBounds(char* data, png_size_t dataL, u16* w, u16* h) {
 	png_structp png_ptr;
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 
@@ -47,22 +47,22 @@ bool pngGetBounds(char* data, int dataL, u16* w, u16* h) {
 
 	png_infop info_ptr = png_create_info_struct(png_ptr);
 	if (!info_ptr) {
-		png_destroy_read_struct(&png_ptr, png_infopp_NULL, png_infopp_NULL);
+		png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
 		return false;
 	}
 
 	png_set_sig_bytes(png_ptr, sig_read);
     png_read_info(png_ptr, info_ptr);
-	png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace_type, int_p_NULL, int_p_NULL);
+	png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace_type, (int*)NULL, (int*)NULL);
 
     *w = width;
     *h = height;
 
-    png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
+    png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
     return true;
 }
 
-bool pngLoadImage(char* data, int dataL, u16* out, u8* alphaOut, int w, int h) {
+bool pngLoadImage(char* data, png_size_t dataL, u16* out, u8* alphaOut, int w, int h) {
     png_structp png_ptr;
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 
@@ -81,7 +81,7 @@ bool pngLoadImage(char* data, int dataL, u16* out, u8* alphaOut, int w, int h) {
 	int bit_depth, color_type, interlace_type;
 	png_infop info_ptr = png_create_info_struct(png_ptr);
 	if (!info_ptr) {
-		png_destroy_read_struct(&png_ptr, png_infopp_NULL, png_infopp_NULL);
+		png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
 		return false;
 	}
     if (setjmp(png_jmpbuf(png_ptr))) { // IO init error
@@ -91,13 +91,13 @@ bool pngLoadImage(char* data, int dataL, u16* out, u8* alphaOut, int w, int h) {
 
 	png_set_sig_bytes(png_ptr, sig_read);
 	png_read_info(png_ptr, info_ptr);
-	png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace_type, int_p_NULL, int_p_NULL);
+	png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace_type, (int*)NULL, (int*)NULL);
 
 	png_set_strip_16(png_ptr);
 	png_set_packing(png_ptr);
 
 	if (color_type == PNG_COLOR_TYPE_PALETTE) png_set_palette_to_rgb(png_ptr);
-	if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8) png_set_gray_1_2_4_to_8(png_ptr);
+	if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8) png_set_expand_gray_1_2_4_to_8(png_ptr);
 	if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) png_set_tRNS_to_alpha(png_ptr);
 	png_set_filler(png_ptr, 0xff, PNG_FILLER_AFTER);
 
@@ -108,7 +108,7 @@ bool pngLoadImage(char* data, int dataL, u16* out, u8* alphaOut, int w, int h) {
 	u32 s;
 	if (!alphaOut) {
 		for (int y = 0; y < h; y++) {
-			png_read_row(png_ptr, (png_byte*)row, png_bytep_NULL);
+			png_read_row(png_ptr, (png_byte*)row, (png_bytep)NULL);
 			src = (u32*)row;
 			for (int x = 0; x < w; x++) {
 				s = *src;
@@ -120,7 +120,7 @@ bool pngLoadImage(char* data, int dataL, u16* out, u8* alphaOut, int w, int h) {
 	} else {
 		u8* dstA = alphaOut;
 		for (int y = 0; y < h; y++) {
-			png_read_row(png_ptr, (png_byte*)row, png_bytep_NULL);
+			png_read_row(png_ptr, (png_byte*)row, (png_bytep)NULL);
 			src = (u32*)row;
 	        for (int x = 0; x < w; x++) {
 	        	s = *src;
@@ -134,7 +134,7 @@ bool pngLoadImage(char* data, int dataL, u16* out, u8* alphaOut, int w, int h) {
 	}
 
 	png_read_end(png_ptr, info_ptr);
-	png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
+	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
     return true;
 }
 

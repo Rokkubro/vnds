@@ -94,7 +94,7 @@ bool loadState(VNDS* vnds, u16 slot) {
     const char* scriptPath = scriptE->GetChild("file")->GetTextContent();
     u32 textSkip = 0;
     if (scriptE->GetChild("position")) {
-    	textSkip = MAX(0, atoi(scriptE->GetChild("position")->GetTextContent()));
+    	textSkip = MAX(0, strtoul(scriptE->GetChild("position")->GetTextContent(),NULL,10));
     }
 
     vnds->scriptEngine->SetScriptFile(scriptPath ? scriptPath : "script/main.scr");
@@ -169,7 +169,7 @@ bool saveXml(VNDS* vnds, u16 slot) {
 
     //ScripEngine state
     u32 textSkip = vnds->scriptEngine->GetTextSkip() - 1;
-    fprintf(file, "  <script><file>%s</file><position>%d</position></script>\n", scriptFile, textSkip);
+    fprintf(file, "  <script><file>%s</file><position>%lu</position></script>\n", scriptFile, textSkip);
 
 	//Date
 	saveDate(buffer);

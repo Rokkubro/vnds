@@ -91,7 +91,7 @@ void Spinner::DrawBackground() {
 		text->PrintLine(valstr);
 	} else if (mode == SM_choice) {
 		if (selected >= 0 && selected < (int)choices.size()) {
-			strncpy(valstr, choices[selected].label, 63);
+			strncat(valstr, choices[selected].label, 63-strlen(valstr));
 			valstr[63] = '\0';
 		}
 		text->SetMargins(0, 0, 0, 0);

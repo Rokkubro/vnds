@@ -46,7 +46,7 @@ void MainTextPane::DisplayFullText() {
 }
 
 bool MainTextPane::AppendText(const char* text, u16 color, bool stripSpaces) {
-	Rect r = GetBounds();
+	//Rect r = GetBounds();
 	for (int n = currentChunkStart; n < GetNumberOfItems(); n++) {
 		SetItemDirty(n);
 	}

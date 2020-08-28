@@ -355,7 +355,7 @@ void GraphicsEngine::SetForeground(const char* filename, s16 x, s16 y) {
     u16 w = 0;
     u16 h = 0;
     if (!imageCache.GetImage(filename, &rgb, &alpha, &w, &h, true)) {
-    	bool success = false;
+    //	bool success = false;
 
 		s8 slot = imageCache.RequestSlot();
 		if (slot >= 0) {
@@ -376,7 +376,7 @@ void GraphicsEngine::SetForeground(const char* filename, s16 x, s16 y) {
 				imageCache.rgb[slot] = rgb;
 				imageCache.alpha[slot] = alpha;
 
-				success = true;
+			//	success = true;
     		} else {
     			imageCache.UnlockSlot(slot);
     			if (rgb)  delete[] rgb;

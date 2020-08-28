@@ -199,11 +199,17 @@ void ScriptEngine::QuickRead() {
 		if ((fileLine & 31) == 0) {
 			vnds->soundEngine->Update();
 		}
+		int numWritten;
 
 		switch (command.id) {
 		case BGLOAD:
-			sprintf(bgpath, "background/%s", command.bgload.path);
-			fgL = 0;
+			numWritten = snprintf(bgpath, MAXPATHLEN, "background/%s", command.bgload.path);
+			if(numWritten != -1 && numWritten != MAXPATHLEN) {
+				fgL = 0;
+			}
+			else {
+				quit = true;
+			}
 			break;
 		case SETIMG:
 			if (fgL >= GE_MAX_SPRITES) {

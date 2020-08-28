@@ -166,7 +166,7 @@ bool downloadFile(const char* url, const char* outputFile) {
 
 				u32 p = 10000*(totalRead>>10)/(contentLength>>10);
 				WIFI_PRINT("\x1b[s");
-		        WIFI_PRINT("Downloading: %3d.%02d%%  %3d.%02dKB/s", p/100, p%100,
+		        WIFI_PRINT("Downloading: %3lu.%02lu%%  %3lu.%02luKB/s", p/100, p%100,
 		        		f32toint(dls>>10), f32toint((100*dls)>>10)%100);
 				WIFI_PRINT("\x1b[u");
 
@@ -201,7 +201,7 @@ bool downloadFile(const char* url, const char* outputFile) {
 }
 
 char* ipToString(char* out, u32 ip) {
-	sprintf(out, "%d.%d.%d.%d", (ip>>24) & 0xFF, (ip>>16) & 0xFF, (ip>>8) & 0xFF, ip & 0xFF);
+	sprintf(out, "%lu.%lu.%lu.%lu", (ip>>24) & 0xFF, (ip>>16) & 0xFF, (ip>>8) & 0xFF, ip & 0xFF);
 	return out;
 }
 u32 stringToIP(const char* ip) {
@@ -255,7 +255,7 @@ bool WifiSettings::Load(const char* path) {
 
         r = iniFile.GetRecord("ssid");
         if (r) {
-        	strncpy(ap.ssid, r->AsString(), 33);
+        	strncpy(ap.ssid, r->AsString(), 32);
         	ap.ssid_len = strlen(ap.ssid);
         }
         r = iniFile.GetRecord("wepkey");

@@ -92,8 +92,8 @@ void VNDS::Idle() {
 			Command cmd = scriptEngine->GetCommand(n);
 			if (cmd.id == SETIMG) {
 			    char path[MAXPATHLEN];
-			    sprintf(path, "foreground/%s", cmd.setimg.path);
-			    if (!graphicsEngine->IsImageCached(path)) {
+			    int numWritten = snprintf(path, MAXPATHLEN, "foreground/%s", cmd.setimg.path);
+			    if (numWritten != -1 && numWritten != MAXPATHLEN && !graphicsEngine->IsImageCached(path)) {
 					pngStream->Start(foregroundArchive, path);
 					break;
 			    }
@@ -426,12 +426,9 @@ void VNDS::SetVar(map<std::string, Variable>& map,
 		sprintf(target.strval, "%d", target.intval);
 		break;
 	case VT_string:
-		int offset;
 		switch (op) {
 		case '+':
-			offset = strlen(target.strval);
-			strncpy(target.strval+offset, var.strval, VAR_STRING_LENGTH-offset-1);
-			target.strval[VAR_STRING_LENGTH-1] = '\0';
+			strncat(target.strval, var.strval, VAR_STRING_LENGTH-strlen(target.strval)-1);
 			break;
 		case '=':
 			strncpy(target.strval, var.strval, VAR_STRING_LENGTH-1);

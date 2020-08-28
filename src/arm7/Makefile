@@ -111,7 +111,7 @@ DEPENDS	:=	$(OFILES:.o=.d)
 # main targets
 #---------------------------------------------------------------------------------
 $(ARM7BIN)	:	$(ARM7ELF)
-	@$(OBJCOPY) -O binary $< $@
+	@cp $< $@
 	@echo built ... $(notdir $@)
 
 

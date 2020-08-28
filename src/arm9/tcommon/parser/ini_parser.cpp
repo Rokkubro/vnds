@@ -7,16 +7,20 @@
 //==============================================================================
 
 FileList::FileList(const char* folder, const char* ext, bool filesOnly) {
+	
     u32 extL = (ext ? strlen(ext) : 0);
 
     files = NULL;
     filesL = 0;
 
-    DIR_ITER* dir = diropen(folder);
+    DIR* dir = opendir(folder);
     if (dir) {
         struct stat st;
+		struct dirent *pent;
         char filename[MAXPATHLEN]; //Always guaranteed to be enough to hold a filename
-    	while (dirnext(dir, filename, &st) == 0) {
+    	while ((pent = readdir(dir)) != NULL) {
+			strcpy(filename,pent->d_name);
+			stat(filename, &st);
             if (!filesOnly || (st.st_mode & S_IFDIR) == 0) {
                 for (int n = 0; filename[n] != '\0'; n++) filename[n] = tolower(filename[n]);
 
@@ -26,15 +30,15 @@ FileList::FileList(const char* folder, const char* ext, bool filesOnly) {
 				}
             }
         }
-
         files = new char*[filesL];
         for (int n = 0; n < filesL; n++) {
             files[n] = NULL;
         }
-
-        dirreset(dir);
+        rewinddir(dir);
         int t = 0;
-        while (dirnext(dir, filename, &st) == 0) {
+        while ((pent = readdir(dir)) != NULL) {
+			strcpy(filename,pent->d_name);
+			stat(filename, &st);
             if (!filesOnly || (st.st_mode & S_IFDIR) == 0) {
                 for (int n = 0; filename[n] != '\0'; n++) filename[n] = tolower(filename[n]);
 
@@ -50,7 +54,7 @@ FileList::FileList(const char* folder, const char* ext, bool filesOnly) {
     	}
     	filesL = t;
 
-    	dirclose(dir);
+    	closedir(dir);
     }
     
     Reset();

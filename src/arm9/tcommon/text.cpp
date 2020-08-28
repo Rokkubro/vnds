@@ -259,7 +259,7 @@ int Text::WrapString(const char* string, bool draw, void(*drawFunc)(const char*)
     char tempString[to - from + 1];
     int tempIndex = 0;
     int lastFittingChar = 0; //Last char that fits on the current line
-    bool allCharsDrawn = true;
+    // bool allCharsDrawn = true;
 
 	while (index < to) {
 		//Find next word start
@@ -340,7 +340,7 @@ int Text::WrapString(const char* string, bool draw, void(*drawFunc)(const char*)
                 if (visibleChars < 0 || charCount <= visibleChars) {
                 	lineDrawEnd = tempIndex;
                 } else {
-            		allCharsDrawn = (visibleChars < 0);
+            		// allCharsDrawn = (visibleChars < 0);
                 }
 
                 ww += advance;

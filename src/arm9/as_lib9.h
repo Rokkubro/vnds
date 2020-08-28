@@ -229,7 +229,7 @@ int AS_SoundPlay(SoundInfo sound);
 
 /// play a sound using the priority system with the default settings
 /// return the sound channel allocated or -1 if the sound was skipped
-int AS_SoundDefaultPlay(u8 *data, u32 size, u8 volume, u8 pan, u8 loop, u8 prio);
+int AS_SoundDefaultPlay(u8 *data, u32 size, u8 volume, s8 pan, u8 loop, u8 prio);
 
 /// set the panning of a sound (0=left, 64=center, 127=right)
 void AS_SetSoundPan(u8 chan, u8 pan);

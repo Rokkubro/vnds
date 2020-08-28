@@ -34,7 +34,7 @@ void tcommonFIFOCallback(u32 value, void* userdata) {
 			break;
 		default:
 			consoleDemoInit();
-			iprintf("Unknown FIFO Command: 0x%x (mode=%d)\n", value, fifoCommandMode);
+			iprintf("Unknown FIFO Command: 0x%lu (mode=%d)\n", value, fifoCommandMode);
 			waitForAnyKey();
 			fifoCommandMode = 0;
 		}
@@ -279,7 +279,7 @@ void resetVideo() {
 	REG_BG0CNT = REG_BG1CNT = REG_BG2CNT = REG_BG3CNT = 0;
 	REG_BG0CNT_SUB = REG_BG1CNT_SUB = REG_BG2CNT_SUB = REG_BG3CNT_SUB = 0;
 
-    vramSetMainBanks(VRAM_A_LCD, VRAM_B_LCD, VRAM_C_LCD, VRAM_D_LCD);
+    vramSetPrimaryBanks(VRAM_A_LCD, VRAM_B_LCD, VRAM_C_LCD, VRAM_D_LCD);
 	vramSetBankE(VRAM_E_LCD);
     vramSetBankF(VRAM_F_LCD);
     vramSetBankG(VRAM_G_LCD);
@@ -404,7 +404,7 @@ bool fexists(const char* filename) {
 }
 
 void setupCapture(int bank) {
-    REG_DISPCAPCNT = DCAP_ENABLE | DCAP_MODE(0) | DCAP_DST(0) | DCAP_SRC(0) | DCAP_SIZE(3) |
+    REG_DISPCAPCNT = DCAP_ENABLE | DCAP_MODE(0) | DCAP_SRC_ADDR(0) | DCAP_SRC(0) | DCAP_SIZE(3) |
         DCAP_OFFSET(0) | DCAP_BANK(bank) | DCAP_B(15) | DCAP_A(0);
 }
 void waitForCapture() {

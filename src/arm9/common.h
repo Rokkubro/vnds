@@ -1,6 +1,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#include <sys/param.h>
 #include "tcommon/common.h"
 #include "../common/fifo.h"
 #include "vnds_types.h"

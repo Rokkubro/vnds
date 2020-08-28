@@ -29,18 +29,22 @@ u8 NovelInfo::GetFontSize() {
 const u16* NovelInfo::GetIcon() {
 	if (!iconLoaded) {
 		char path[MAXPATHLEN];
-		sprintf(path, "%s/icon", GetPath());
-		loadImage(path, icon, NULL, 32, 32);
-		iconLoaded = true;
+		int numWritten = snprintf(path, MAXPATHLEN, "%s/icon", GetPath());
+		if(numWritten != -1 && numWritten != MAXPATHLEN) {
+			loadImage(path, icon, NULL, 32, 32);
+			iconLoaded = true;
+		}
 	}
 	return icon;
 }
 const u16* NovelInfo::GetThumbnail() {
 	if (!thumbnailLoaded) {
 		char path[MAXPATHLEN];
-		sprintf(path, "%s/thumbnail", GetPath());
-		loadImage(path, thumbnail, NULL, 100, 75);
-		thumbnailLoaded = true;
+		int numWritten = snprintf(path, MAXPATHLEN, "%s/thumbnail", GetPath());
+		if(numWritten != -1 && numWritten != MAXPATHLEN) {
+			loadImage(path, thumbnail, NULL, 100, 75);
+			thumbnailLoaded = true;
+		}
 	}
 	return thumbnail;
 }
