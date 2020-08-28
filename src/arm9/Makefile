@@ -28,7 +28,7 @@ FREETYPE2   := $(DEVKITPRO)/portlibs/nds/include/freetype2
 #---------------------------------------------------------------------------------
 ARCH	:=	-marm -mthumb-interwork
 
-CFLAGS	:=	-g -Wall -O2 -fpermissive \
+CFLAGS	:=	-g -Wall -O2 \
  			-march=armv5te -mtune=arm946e-s -fomit-frame-pointer \
 			-ffast-math -save-temps \
 			$(ARCH) $(INCLUDE) -DARM9 \

@@ -91,6 +91,6 @@ int main(int argc, char** argv) {
         }
 
 		swiWaitForVBlank();
-        AS_MP3Engine();
+        //AS_MP3Engine();
     } while(1);
 }

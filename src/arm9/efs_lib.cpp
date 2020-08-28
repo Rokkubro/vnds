@@ -610,7 +610,7 @@ int EFS_Open(struct _reent *r, void *fileStruct, const char *path, int flags, in
 }
 
 // set the current position in the file
-off_t EFS_Seek(struct _reent *r, int fd, off_t pos, int dir) {
+off_t EFS_Seek(struct _reent *r, void *fd, off_t pos, int dir) {
     EFS_FileStruct *file = (EFS_FileStruct*)fd;
     switch(dir) {
         case SEEK_SET:
@@ -627,7 +627,7 @@ off_t EFS_Seek(struct _reent *r, int fd, off_t pos, int dir) {
 }
 
 // read data from file
-ssize_t EFS_Read(struct _reent *r, int fd, char *ptr, size_t len) {
+ssize_t EFS_Read(struct _reent *r, void *fd, char *ptr, size_t len) {
     EFS_FileStruct *file = (EFS_FileStruct*)fd;
 
     if(file->pos+len > file->end)
@@ -649,7 +649,7 @@ ssize_t EFS_Read(struct _reent *r, int fd, char *ptr, size_t len) {
 }
 
 // write data to file (only works using DLDI)
-ssize_t EFS_Write(struct _reent *r, int fd, const char *ptr, size_t len) {
+ssize_t EFS_Write(struct _reent *r, void *fd, const char *ptr, size_t len) {
     EFS_FileStruct *file = (EFS_FileStruct*)fd;
 
     if(file->pos+len > file->end)
@@ -672,7 +672,7 @@ ssize_t EFS_Write(struct _reent *r, int fd, const char *ptr, size_t len) {
 }
 
 // close current file
-int EFS_Close(struct _reent *r, int fd) {
+int EFS_Close(struct _reent *r, void *fd) {
     // flush writes in the file system
     if(useDLDI && hasWritten) {
         if(nds_file)
@@ -777,7 +777,7 @@ int EFS_DirNext(struct _reent *r, DIR_ITER *dirState, char *filename, struct sta
 }
 
 // get some info on a file
-int EFS_Fstat(struct _reent *r, int fd, struct stat *st) {
+int EFS_Fstat(struct _reent *r, void *fd, struct stat *st) {
     EFS_FileStruct *file = (EFS_FileStruct*)fd;
     st->st_size = file->end - file->start;
     // maybe add some other info?
