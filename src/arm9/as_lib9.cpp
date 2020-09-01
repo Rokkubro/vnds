@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include "as_lib9.h"
+#include "../common/mp3_shared.h"
 
 IPC_SoundSystem* ipcSound;
 
@@ -46,7 +47,7 @@ void AS_Init(u8 mode, u32 mp3BufferSize) {
     memset(ipcSound, 0, sizeof(IPC_SoundSystem));
 	if (mp3BufferSize > 0) {
 		//Set up memory in a non-cache area
-		ipcSound->mp3.helixbuffer = (u32)memalign(32, mp3BufferSize) | 0x400000;
+		//ipcSound->mp3.helixbuffer = (u32)memalign(32, mp3BufferSize) | 0x400000;
 	}
 
     int i, nb_chan = 16;
@@ -55,6 +56,8 @@ void AS_Init(u8 mode, u32 mp3BufferSize) {
     as_default_format = AS_PCM_8BIT;
     as_default_rate = 22050;
     as_default_delay = AS_SURROUND;
+	
+	mp3_init();
 
     if (!fifoSendValue32(TCOMMON_FIFO_CHANNEL_ARM7, MSG_INIT_SOUND_ARM7)) {
     	consoleDemoInit();
@@ -62,6 +65,7 @@ void AS_Init(u8 mode, u32 mp3BufferSize) {
     	waitForAnyKey();
     	return;
     }
+	
 
 	//consoleDemoInit();
 	//iprintf("Waiting\n");
@@ -99,7 +103,7 @@ void AS_Init(u8 mode, u32 mp3BufferSize) {
 
     // use mp3
     if (mode & AS_MODE_MP3) {
-        ipcSound->mp3.mixbuffer = (s8*)((u32)memalign(4, AS_AUDIOBUFFER_SIZE * 2) | 0x400000);
+/*         ipcSound->mp3.mixbuffer = (s8*)((u32)memalign(4, AS_AUDIOBUFFER_SIZE * 2) | 0x400000);
         ipcSound->mp3.buffersize = AS_AUDIOBUFFER_SIZE / 2;
         ipcSound->mp3.channelL = 0;
         ipcSound->mp3.prevtimer = 0;
@@ -119,21 +123,20 @@ void AS_Init(u8 mode, u32 mp3BufferSize) {
             ipcSound->chan[1].reserved = true;
         }
 
-        ipcSound->chan[ipcSound->mp3.channelL].snd.pan = 64;
-        AS_SetMP3Volume(127);
+        ipcSound->chan[ipcSound->mp3.channelL].snd.pan = 64; */
     }
-    AS_SetMasterVolume(127);
-    DC_FlushRange(ipcSound, sizeof(IPC_SoundSystem));
+  //  DC_FlushRange(ipcSound, sizeof(IPC_SoundSystem));
 
-    if (!fifoSendValue32(TCOMMON_FIFO_CHANNEL_ARM7, (u32)ipcSound)) { //SendAddress doesn't work, ipcSound outside normal RAM
+    if (!fifoSendValue32(TCOMMON_FIFO_CHANNEL_ARM7, (u32)1)) { //SendAddress doesn't work, ipcSound outside normal RAM
     	consoleDemoInit();
     	iprintf("Fatal error while initializing sound. (IPC_INIT)\n");
     	waitForAnyKey();
     	return;
     }
-
+AS_SetMP3Volume(127);
+ AS_SetMasterVolume(127);
     //Wait for the arm 7 to be ready
-    while ((ipcSound->chan[0].cmd & SNDCMD_ARM7READY) == 0) {
+/*     while ((ipcSound->chan[0].cmd & SNDCMD_ARM7READY) == 0) {
         DC_FlushRange(ipcSound, sizeof(IPC_SoundSystem));
         swiWaitForVBlank();
     }
@@ -143,7 +146,7 @@ void AS_Init(u8 mode, u32 mp3BufferSize) {
 			DC_FlushRange(ipcSound, sizeof(IPC_SoundSystem));
 			swiWaitForVBlank();
 		}
-    }
+    } */
 
 	//iprintf("Done Waiting\n");
 }
@@ -276,6 +279,10 @@ void AS_SoundDirectPlay(u8 chan, SoundInfo sound)
 // fill the given buffer with the required amount of mp3 data
 void AS_MP3FillBuffer(u8 *buffer, u32 bytes)
 {
+   mp3_fill_buffer();
+}
+/* void AS_MP3FillBuffer(u8 *buffer, u32 bytes)
+{
     u32 read = FILE_READ(buffer, 1, bytes, mp3file);
     //DC_FlushRange(buffer, read);
 
@@ -284,10 +291,10 @@ void AS_MP3FillBuffer(u8 *buffer, u32 bytes)
         FILE_READ(buffer + read, 1, bytes - read, mp3file);
         //DC_FlushRange(buffer+read, read2);
     }
-}
+} */
 
 // play an mp3 directly from memory
-void AS_MP3DirectPlay(u8 *mp3_data, u32 size)
+/* void AS_MP3DirectPlay(u8 *mp3_data, u32 size)
 {
     if(ipcSound->mp3.state & (MP3ST_PLAYING | MP3ST_PAUSED))
         return;
@@ -296,10 +303,13 @@ void AS_MP3DirectPlay(u8 *mp3_data, u32 size)
     ipcSound->mp3.mp3filesize = size;
     ipcSound->mp3.stream = false;
     ipcSound->mp3.cmd = MP3CMD_PLAY;
-}
+} */
 
 // play an mp3 stream
-void AS_MP3StreamPlay(FileHandle* fh)
+void AS_MP3StreamPlay(FileHandle* fh, u8 loop){
+	mp3_play_file(fh,loop);
+}
+/* void AS_MP3StreamPlay(FileHandle* fh)
 {
     if(ipcSound->mp3.state & (MP3ST_PLAYING | MP3ST_PAUSED))
         return;
@@ -332,10 +342,10 @@ void AS_MP3StreamPlay(FileHandle* fh)
         ipcSound->mp3.cmd = MP3CMD_PLAY;
     }
 
-}
+} */
 
 // set the mp3 panning (0=left, 64=center, 127=right)
-void AS_SetMP3Pan(u8 pan)
+/* void AS_SetMP3Pan(u8 pan)
 {
     int difference = ((pan - 64) >> AS_PANNING_SHIFT) * ipcSound->chan[ipcSound->mp3.channelL].snd.volume / AS_VOL_NORMALIZE;
 
@@ -358,10 +368,14 @@ void AS_SetMP3Pan(u8 pan)
     ipcSound->chan[ipcSound->mp3.channelR].cmd |= SNDCMD_SETVOLUME;
     ipcSound->chan[ipcSound->mp3.channelR].cmd |= SNDCMD_SETPAN;
 
-}
+} */
 
 // regenerate buffers for mp3 stream, must be called each VBlank (only needed if mp3 is used)
 void AS_SoundVBL()
+{
+	AS_MP3FillBuffer(ipcSound->mp3.mp3buffer + AS_FILEBUFFER_SIZE, AS_FILEBUFFER_SIZE);
+}
+/* void AS_SoundVBL()
 {
 	if (ipcSound->mp3.state & MP3ST_DECODE_ERROR) {
 		ipcSound->mp3.state = MP3ST_STOPPED;
@@ -376,7 +390,7 @@ void AS_SoundVBL()
         AS_MP3FillBuffer(ipcSound->mp3.mp3buffer + AS_FILEBUFFER_SIZE, AS_FILEBUFFER_SIZE);
         ipcSound->mp3.needdata = false;
     }
-}
+} */
 
 /// reserve a particular DS channel (so it won't be used for the sound pool)
 void AS_ReserveChannel(u8 channel) {
@@ -423,46 +437,58 @@ void AS_SoundStop(u8 chan) {
 
 /// pause an mp3
 void AS_MP3Pause() {
+	mp3_pause();
+}
+/* void AS_MP3Pause() {
     if(ipcSound->mp3.state & MP3ST_PLAYING)
     	ipcSound->mp3.cmd = MP3CMD_PAUSE;
-}
+} */
 
 /// unpause an mp3
 void AS_MP3Unpause() {
+	mp3_resume();
+}
+/* void AS_MP3Unpause() {
     if(ipcSound->mp3.state & MP3ST_PAUSED)
     	ipcSound->mp3.cmd = MP3CMD_PLAY;
 }
-
+ */
 /// stop an mp3
 void AS_MP3Stop() {
+	mp3_stop();
+}
+/* void AS_MP3Stop() {
 	ipcSound->mp3.cmd = MP3CMD_STOP;
     FILE_CLOSE(mp3file);
     mp3file = NULL; ///VNDS Edit
-}
+} */
 
 /// get the current mp3 status
-int AS_GetMP3Status() {
+/* int AS_GetMP3Status() {
     return ipcSound->mp3.state;
-}
+} */
 
 /// set the mp3 volume (0..127)
 void AS_SetMP3Volume(u8 volume) {
+	mp3_set_volume(volume);
+}
+/* void AS_SetMP3Volume(u8 volume) {
 	ipcSound->chan[ipcSound->mp3.channelL].snd.volume = volume * AS_BASE_VOLUME / 127;
     AS_SetMP3Pan(ipcSound->chan[ipcSound->mp3.channelL].snd.pan);
-}
+} */
 
 /// set the default mp3 delay mode (warning: high values can cause glitches)
-void AS_SetMP3Delay(u8 delay) {
+/* void AS_SetMP3Delay(u8 delay) {
     ipcSound->mp3.delay = delay;
-}
+} */
 
 /// set the mp3 loop mode (false = one shot, true = loop indefinitely)
-void AS_SetMP3Loop(u8 loop) {
+/* void AS_SetMP3Loop(u8 loop) {
     ipcSound->mp3.loop = loop;
-}
+} */
 
 /// set the mp3 sample rate
-void AS_SetMP3Rate(s32 rate) {
+/* void AS_SetMP3Rate(s32 rate) {
     ipcSound->mp3.rate = rate;
     ipcSound->mp3.cmd |= MP3CMD_SETRATE;
-}
+} */

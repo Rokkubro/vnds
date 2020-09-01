@@ -120,6 +120,7 @@ $(ARM9BIN)	:	$(ARM9ELF)
 
 $(ARM9ELF)	:	$(OFILES)
 	@echo linking $(notdir $@)
+	@echo "$(LD)  $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o "$@
 	@$(LD)  $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
 
 -include $(DEPENDS)

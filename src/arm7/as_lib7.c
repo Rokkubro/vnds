@@ -26,11 +26,13 @@
 
 #include <nds.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "helix/mp3dec.h"
 #include "helix/mp3common.h"
 #include "helix/real/coder.h"
 #include "as_lib7.h"
+#include "../common/mp3_shared.h"
 
 // internal functions
 void AS_InitMP3();
@@ -40,11 +42,11 @@ void AS_RegenStream();
 void AS_RegenStreamCallback(s16 *stream, u32 numsamples);
 void AS_StereoDesinterleave(s16 *input, s16 *outputL, s16 *outputR, u32 samples);
 
-IPC_SoundSystem* ipcSound = 0;
+//IPC_SoundSystem* ipcSound = 0;
 
 // variables for the mp3 player
-HMP3Decoder hMP3Decoder;
-MP3FrameInfo mp3FrameInfo;
+//HMP3Decoder hMP3Decoder;
+//MP3FrameInfo mp3FrameInfo;
 u8 *readPtr;
 int bytesLeft;
 
@@ -55,7 +57,7 @@ u8 stereo;
 
 
 // the sound engine, must be called each VBlank
-void AS_SoundVBL() {
+/* void AS_SoundVBL() {
 	if (!ipcSound) return;
 
     int i;
@@ -147,10 +149,15 @@ void AS_SoundVBL() {
     }
 #endif
 
-}
+} */
 
 // the mp3 decoding engine, must be called on a regular basis (like after VBlank)
+
 void AS_MP3Engine() {
+	mp3_process();
+}
+
+/* void AS_MP3Engine() {
     if (!ipcSound) return;
 
 	MP3Player* mp3 = &ipcSound->mp3;
@@ -250,7 +257,7 @@ void AS_MP3Engine() {
         mp3->cmd &= ~MP3CMD_MIX;
         mp3->cmd |= MP3CMD_MIXING;
     }
-}
+} */
 
 // set timer to the given period
 void AS_SetTimer(int freq)
@@ -269,7 +276,7 @@ void AS_SetTimer(int freq)
 }
 
 // clear some buffers to avoid clicking on new mp3 start
-void AS_MP3ClearBuffers(){
+/* void AS_MP3ClearBuffers(){
     MP3DecInfo *mp3DecInfo = (MP3DecInfo*)hMP3Decoder;
 	memset(mp3DecInfo->FrameHeaderPS, 0, sizeof(FrameHeader));
 	memset(mp3DecInfo->SideInfoPS, 0, sizeof(SideInfo));
@@ -280,10 +287,10 @@ void AS_MP3ClearBuffers(){
 	memset(mp3DecInfo->SubbandInfoPS, 0, sizeof(SubbandInfo));
 	memset(mp3DecInfo->IMDCTInfoPS, 0, sizeof(IMDCTInfo));
 	memset(mp3DecInfo->SubbandInfoPS, 0, sizeof(SubbandInfo));
-}
+} */
 
 // fill the given stream buffer with numsamples samples. (based on ThomasS code)
-void AS_RegenStreamCallback(s16 *stream, u32 numsamples)
+/* void AS_RegenStreamCallback(s16 *stream, u32 numsamples)
 {
     int outSample, restSample, minSamples, offset, err;
     outSample = 0;
@@ -378,10 +385,10 @@ void AS_RegenStreamCallback(s16 *stream, u32 numsamples)
         ipcSound->mp3.needdata = true;
     }
 
-}
+} */
 
 // regenerate the sound stream into the ring buffer.
-void AS_RegenStream()
+/* void AS_RegenStream()
 {
     int remain;
 
@@ -393,10 +400,10 @@ void AS_RegenStream()
     } else {
         AS_RegenStreamCallback((s16*)&ipcSound->mp3.mixbuffer[ipcSound->mp3.soundcursor << 1], ipcSound->mp3.numsamples);
     }
-}
+} */
 
 // stop playing the mp3
-void AS_MP3Stop()
+/* void AS_MP3Stop()
 {
     SCHANNEL_CR(ipcSound->mp3.channelL) = 0;
     SCHANNEL_CR(ipcSound->mp3.channelR) = 0;
@@ -405,24 +412,28 @@ void AS_MP3Stop()
     ipcSound->mp3.cmd = MP3CMD_NONE;
     ipcSound->mp3.state = MP3ST_STOPPED;
     AS_MP3ClearBuffers();
-}
+} */
 
-void AS_InitMP3() {
+/* void AS_InitMP3() {
 	AS_SetTimer(0);
     hMP3Decoder = MP3InitDecoder();
+} */
+
+void AS_Init() {
+	mp3_init();
 }
 
-void AS_Init(IPC_SoundSystem* ipc) {
+/* void AS_Init() {
 	REG_MASTER_VOLUME = SOUND_VOL(ipc->volume = 127);
 
     ipc->chan[0].cmd |= SNDCMD_ARM7READY;
     //while (ipc->chan[0].cmd & SNDCMD_ARM7READY);
 
     ipcSound = ipc;
-}
+} */
 
 // desinterleave a stereo source (thanks to Thoduv for the code)
-asm (
+/* asm (
 "@--------------------------------------------------------------------------------------\n"
 "    .text                                                                              \n"
 "    .arm                                                                               \n"
@@ -497,4 +508,4 @@ asm (
 "    ldmia sp!, {r4-r11}                                                                \n"
 "    bx lr                                                                              \n"
 "@--------------------------------------------------------------------------------------\n"
-);
+); */

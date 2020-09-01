@@ -32,7 +32,7 @@ void VNSelect::Run() {
 		gui->Update();
         gui->Draw();
 
-        AS_SoundVBL();
+        //AS_SoundVBL();
         swiWaitForVBlank();
 	}
 }

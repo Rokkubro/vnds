@@ -250,7 +250,7 @@ void AS_SoundDirectPlay(u8 chan, SoundInfo sound);
 void AS_MP3DirectPlay(u8 *buffer, u32 size);
 
 /// play an mp3 stream
-void AS_MP3StreamPlay(MP3FILE* file);
+void AS_MP3StreamPlay(MP3FILE* file, u8 loop);
 
 /// pause an mp3
 void AS_MP3Pause();

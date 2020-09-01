@@ -56,8 +56,8 @@ void SoundEngine::SetMusic(const char* path) {
 		FileHandle* fh = fhOpen(soundArchive, musicPath, true);
 		//FILE* fh = fopen(musicPath, "rb");
 		if (fh) {
-			AS_SetMP3Loop(1);
-			AS_MP3StreamPlay(fh);
+			//AS_SetMP3Loop(1);
+			AS_MP3StreamPlay(fh, 1);
 			vnLog(EL_verbose, COM_SOUND, "Starting music: %s", musicPath);
 		} else {
 			vnLog(EL_missing, COM_SOUND, "Can't find music file: %s", musicPath);

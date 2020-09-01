@@ -1,37 +1,37 @@
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: RCSL 1.0/RPSL 1.0
- *
- * Portions Copyright (c) 1995-2002 RealNetworks, Inc. All Rights Reserved.
- *
- * The contents of this file, and the files included with this file, are
- * subject to the current version of the RealNetworks Public Source License
- * Version 1.0 (the "RPSL") available at
- * http://www.helixcommunity.org/content/rpsl unless you have licensed
- * the file under the RealNetworks Community Source License Version 1.0
- * (the "RCSL") available at http://www.helixcommunity.org/content/rcsl,
- * in which case the RCSL will apply. You may also obtain the license terms
- * directly from RealNetworks.  You may not use this file except in
- * compliance with the RPSL or, if you have a valid RCSL with RealNetworks
- * applicable to this file, the RCSL.  Please see the applicable RPSL or
- * RCSL for the rights, obligations and limitations governing use of the
- * contents of the file.
- *
- * This file is part of the Helix DNA Technology. RealNetworks is the
- * developer of the Original Code and owns the copyrights in the portions
- * it created.
- *
- * This file, and the files included with this file, is distributed and made
- * available on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND REALNETWORKS HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- *
- * Technology Compatibility Kit Test Suite(s) Location:
- *    http://www.helixcommunity.org/content/tck
- *
- * Contributor(s):
- *
- * ***** END LICENSE BLOCK ***** */
+/* ***** BEGIN LICENSE BLOCK ***** 
+ * Version: RCSL 1.0/RPSL 1.0 
+ *  
+ * Portions Copyright (c) 1995-2002 RealNetworks, Inc. All Rights Reserved. 
+ *      
+ * The contents of this file, and the files included with this file, are 
+ * subject to the current version of the RealNetworks Public Source License 
+ * Version 1.0 (the "RPSL") available at 
+ * http://www.helixcommunity.org/content/rpsl unless you have licensed 
+ * the file under the RealNetworks Community Source License Version 1.0 
+ * (the "RCSL") available at http://www.helixcommunity.org/content/rcsl, 
+ * in which case the RCSL will apply. You may also obtain the license terms 
+ * directly from RealNetworks.  You may not use this file except in 
+ * compliance with the RPSL or, if you have a valid RCSL with RealNetworks 
+ * applicable to this file, the RCSL.  Please see the applicable RPSL or 
+ * RCSL for the rights, obligations and limitations governing use of the 
+ * contents of the file.  
+ *  
+ * This file is part of the Helix DNA Technology. RealNetworks is the 
+ * developer of the Original Code and owns the copyrights in the portions 
+ * it created. 
+ *  
+ * This file, and the files included with this file, is distributed and made 
+ * available on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER 
+ * EXPRESS OR IMPLIED, AND REALNETWORKS HEREBY DISCLAIMS ALL SUCH WARRANTIES, 
+ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY, FITNESS 
+ * FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT. 
+ * 
+ * Technology Compatibility Kit Test Suite(s) Location: 
+ *    http://www.helixcommunity.org/content/tck 
+ * 
+ * Contributor(s): 
+ *  
+ * ***** END LICENSE BLOCK ***** */ 
 
 /**************************************************************************************
  * Fixed-point MP3 decoder
@@ -40,16 +40,13 @@
  *
  * buffers.c - allocation and freeing of internal MP3 decoder buffers
  *
- * All memory allocation for the codec is done in this file, so if you don't want
- *  to use other the default system malloc() and free() for heap management this is
+ * All memory allocation for the codec is done in this file, so if you don't want 
+ *  to use other the default system malloc() and free() for heap management this is 
  *  the only file you'll need to change.
  **************************************************************************************/
 
-#include <string.h>
-#include "stdlib.h"		/* for malloc, free */
+#include <stdlib.h>		/* for malloc, free */ 
 #include "coder.h"
-
-#include "as_lib7.h"
 
 /**************************************************************************************
  * Function:    ClearBuffer
@@ -65,9 +62,6 @@
  *
  * Notes:       slow, platform-independent equivalent to memset(buf, 0, nBytes)
  **************************************************************************************/
-#define ClearBuffer(buf, size)  memset(buf, 0, size)
-
-/*
 static void ClearBuffer(void *buf, int nBytes)
 {
 	int i;
@@ -77,7 +71,7 @@ static void ClearBuffer(void *buf, int nBytes)
 		cbuf[i] = 0;
 
 	return;
-}*/
+}
 
 /**************************************************************************************
  * Function:    AllocateBuffers
@@ -88,20 +82,13 @@ static void ClearBuffer(void *buf, int nBytes)
  *
  * Outputs:     none
  *
- * Return:      pointer to MP3DecInfo structure (initialized with pointers to all
- *                the internal buffers needed for decoding, all other members of
+ * Return:      pointer to MP3DecInfo structure (initialized with pointers to all 
+ *                the internal buffers needed for decoding, all other members of 
  *                MP3DecInfo structure set to 0)
  *
  * Notes:       if one or more mallocs fail, function frees any buffers already
  *                allocated before returning
  **************************************************************************************/
-
-u8 mp3DecMem[sizeof(MP3DecInfo)];
-u8 subbandMem[sizeof(SubbandInfo)];	// it seems like it is important to have the subband info in arm7 memory
-u8 dequantMem[sizeof(DequantInfo)];
-//u8 huffmanMem[sizeof(HuffmanInfo)];
-
-
 MP3DecInfo *AllocateBuffers(void)
 {
 	MP3DecInfo *mp3DecInfo;
@@ -113,20 +100,18 @@ MP3DecInfo *AllocateBuffers(void)
 	IMDCTInfo *mi;
 	SubbandInfo *sbi;
 
-	mp3DecInfo = (MP3DecInfo *)(mp3DecMem);
+	mp3DecInfo = (MP3DecInfo *)malloc(sizeof(MP3DecInfo));
 	if (!mp3DecInfo)
 		return 0;
 	ClearBuffer(mp3DecInfo, sizeof(MP3DecInfo));
-
-	fh =  (FrameHeader *)     (ipcSound->mp3.helixbuffer);
-	si =  (SideInfo *)        (ipcSound->mp3.helixbuffer + sizeof(FrameHeader));
-	sfi = (ScaleFactorInfo *) (ipcSound->mp3.helixbuffer + sizeof(FrameHeader) + sizeof(SideInfo));
-	//hi =  (HuffmanInfo *)     (huffmanMem);
-	hi =  (HuffmanInfo *)     (ipcSound->mp3.helixbuffer + sizeof(FrameHeader) + sizeof(SideInfo) + sizeof(ScaleFactorInfo));
-	di =  (DequantInfo *)     (dequantMem);
-	//di =  (DequantInfo *)     (ipcSound->mp3.helixbuffer + sizeof(FrameHeader) + sizeof(SideInfo) + sizeof(ScaleFactorInfo) + sizeof(HuffmanInfo));
-	mi =  (IMDCTInfo *)       (ipcSound->mp3.helixbuffer + sizeof(FrameHeader) + sizeof(SideInfo) + sizeof(ScaleFactorInfo) + sizeof(HuffmanInfo) + sizeof(DequantInfo));
-	sbi = (SubbandInfo *)     (subbandMem);
+	
+	fh =  (FrameHeader *)     malloc(sizeof(FrameHeader));
+	si =  (SideInfo *)        malloc(sizeof(SideInfo));
+	sfi = (ScaleFactorInfo *) malloc(sizeof(ScaleFactorInfo));
+	hi =  (HuffmanInfo *)     malloc(sizeof(HuffmanInfo));
+	di =  (DequantInfo *)     malloc(sizeof(DequantInfo));
+	mi =  (IMDCTInfo *)       malloc(sizeof(IMDCTInfo));
+	sbi = (SubbandInfo *)     malloc(sizeof(SubbandInfo));
 
 	mp3DecInfo->FrameHeaderPS =     (void *)fh;
 	mp3DecInfo->SideInfoPS =        (void *)si;
@@ -137,7 +122,7 @@ MP3DecInfo *AllocateBuffers(void)
 	mp3DecInfo->SubbandInfoPS =     (void *)sbi;
 
 	if (!fh || !si || !sfi || !hi || !di || !mi || !sbi) {
-		FreeBuffers(mp3DecInfo);	// safe to call - only frees memory that was successfully allocated
+		FreeBuffers(mp3DecInfo);	/* safe to call - only frees memory that was successfully allocated */
 		return 0;
 	}
 
