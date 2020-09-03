@@ -157,7 +157,7 @@ typedef struct
 } MP3Player;
 
 // IPC structure for the sound system
-/* typedef struct
+typedef struct
 {
     MP3Player mp3;
     SoundChannel chan[16];
@@ -167,13 +167,11 @@ typedef struct
 
 } IPC_SoundSystem;
 
-extern IPC_SoundSystem* ipcSound; */
-
 // initialize the main system
 void AS_Init();
 
 // the sound engine, must be called each VBlank
-void AS_SoundVBL();
+//void AS_SoundVBL();
 
 // the mp3 decoding engine, must be called on a regular basis (like after VBlank)
 void AS_MP3Engine();

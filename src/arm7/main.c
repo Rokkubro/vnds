@@ -14,7 +14,7 @@ void vCountHandler() {
 }
 
 void vBlankHandler() {
-  // 	AS_SoundVBL(); // Update AS_Lib
+	//AS_SoundVBL(); // Update AS_Lib
 
 #ifdef SUPPORT_WIFI
    	Wifi_Update(); //Update WIFI
@@ -85,13 +85,12 @@ int main(int argc, char** argv) {
 #endif
         	case MSG_INIT_SOUND_ARM7:
         	    while (!fifoCheckValue32(TCOMMON_FIFO_CHANNEL_ARM7));
-        	    int v = fifoGetValue32(TCOMMON_FIFO_CHANNEL_ARM7);
-        	   	AS_Init();
+        	    u32 v = fifoGetValue32(TCOMMON_FIFO_CHANNEL_ARM7);
+        	   	AS_Init((IPC_SoundSystem *)v);
         	   	break;
         	}
         }
-
 		swiWaitForVBlank();
-        AS_MP3Engine();
+		AS_MP3Engine();
     } while(1);
 }

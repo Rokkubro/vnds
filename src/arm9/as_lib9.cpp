@@ -37,13 +37,17 @@ u8* mp3filebuffer = NULL;
 u8 as_default_format;
 s32 as_default_rate;
 u8 as_default_delay;
-
+void *uncached_mallocIpc(size_t count) {
+	void *p = malloc(count);
+	return ((p == 0) ? 0 : memUncached(p));
+}
 // initialize the ASLib
 void AS_Init(u8 mode, u32 mp3BufferSize) {
 	//Set up memory in a non-cache area
+	
 	u32 mem = (u32)memalign(32, sizeof(IPC_SoundSystem)) | 0x400000;
 	ipcSound = (IPC_SoundSystem*)mem;
-
+	//ipcSound = (IPC_SoundSystem *)uncached_mallocIpc(sizeof(IPC_SoundSystem));
     memset(ipcSound, 0, sizeof(IPC_SoundSystem));
 	if (mp3BufferSize > 0) {
 		//Set up memory in a non-cache area
@@ -72,7 +76,7 @@ void AS_Init(u8 mode, u32 mp3BufferSize) {
 	//iprintf("%d ", ipcSound->chan[0].cmd);
 
     // initialize channels
-    for (i = 0; i < 16; i++) {
+    for (i = 0; i < 15; i++) {
         ipcSound->chan[i].busy = false;
         ipcSound->chan[i].reserved = false;
         ipcSound->chan[i].volume = 0;
@@ -84,7 +88,7 @@ void AS_Init(u8 mode, u32 mp3BufferSize) {
     if(mode & AS_MODE_8CH) {
 
         nb_chan = 8;
-        for(i = 8; i < 16; i++)
+        for(i = 8; i < 15; i++)
             ipcSound->chan[i].reserved = true;
     }
 
@@ -127,7 +131,7 @@ void AS_Init(u8 mode, u32 mp3BufferSize) {
     }
   //  DC_FlushRange(ipcSound, sizeof(IPC_SoundSystem));
 
-    if (!fifoSendValue32(TCOMMON_FIFO_CHANNEL_ARM7, (u32)1)) { //SendAddress doesn't work, ipcSound outside normal RAM
+    if (!fifoSendValue32(TCOMMON_FIFO_CHANNEL_ARM7, (u32)ipcSound)) { //SendAddress doesn't work, ipcSound outside normal RAM
     	consoleDemoInit();
     	iprintf("Fatal error while initializing sound. (IPC_INIT)\n");
     	waitForAnyKey();
@@ -136,11 +140,11 @@ void AS_Init(u8 mode, u32 mp3BufferSize) {
 AS_SetMP3Volume(127);
  AS_SetMasterVolume(127);
     //Wait for the arm 7 to be ready
-/*     while ((ipcSound->chan[0].cmd & SNDCMD_ARM7READY) == 0) {
+    while ((ipcSound->chan[0].cmd & SNDCMD_ARM7READY) == 0) {
         DC_FlushRange(ipcSound, sizeof(IPC_SoundSystem));
         swiWaitForVBlank();
     }
-    if (mode & AS_MODE_MP3) {
+/*     if (mode & AS_MODE_MP3) {
     	//Wait for MP3 Init
 		while (ipcSound->mp3.cmd & MP3CMD_INIT) {
 			DC_FlushRange(ipcSound, sizeof(IPC_SoundSystem));
@@ -158,7 +162,7 @@ int AS_SoundPlay(SoundInfo sound)
     int i, free_ch = -1, minp_ch = -1;
 
     // search a free channel
-    for(i = 0; i < 16; i++) {
+    for(i = 0; i < 15; i++) {
         if(!(ipcSound->chan[i].reserved || ipcSound->chan[i].busy))
             free_ch = i;
     }
@@ -173,7 +177,7 @@ int AS_SoundPlay(SoundInfo sound)
     } else {
 
         // find the channel with the least priority
-        for(i = 0; i < 16; i++) {
+        for(i = 0; i < 15; i++) {
             if(!ipcSound->chan[i].reserved) {
                 if(minp_ch == -1)
                     minp_ch = i;
@@ -264,6 +268,8 @@ void AS_SoundDirectPlay(u8 chan, SoundInfo sound)
     ipcSound->chan[chan].cmd = SNDCMD_PLAY;
     ipcSound->chan[chan].volume = sound.volume;
     ipcSound->chan[chan].pan = sound.pan;
+	
+	fifoSendAddress(TCOMMON_FIFO_CHANNEL_ARM7, ipcSound->chan + chan);
 
     if(ipcSound->surround) {
         ipcSound->chan[chan + ipcSound->num_chan].snd = sound;

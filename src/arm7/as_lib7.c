@@ -33,6 +33,7 @@
 #include "helix/real/coder.h"
 #include "as_lib7.h"
 #include "../common/mp3_shared.h"
+#include "../common/fifo.h"
 
 // internal functions
 void AS_InitMP3();
@@ -42,7 +43,7 @@ void AS_RegenStream();
 void AS_RegenStreamCallback(s16 *stream, u32 numsamples);
 void AS_StereoDesinterleave(s16 *input, s16 *outputL, s16 *outputR, u32 samples);
 
-//IPC_SoundSystem* ipcSound = 0;
+//static SoundChannel* soundChan = 0;
 
 // variables for the mp3 player
 //HMP3Decoder hMP3Decoder;
@@ -55,71 +56,70 @@ int nAudioBufStart;
 int nAudioBuf;
 u8 stereo;
 
-
 // the sound engine, must be called each VBlank
-/* void AS_SoundVBL() {
-	if (!ipcSound) return;
-
-    int i;
-
+ void AS_SoundVBL(SoundChannel *soundChan) {
+	if (!soundChan){
+		return;
+	}
+    int i = getFreeChannel();
     // adjust master volume
-    if (ipcSound->chan[0].cmd & SNDCMD_SETMASTERVOLUME) {
+/*     if (ipcSound->chan[0].cmd & SNDCMD_SETMASTERVOLUME) {
     	REG_MASTER_VOLUME = SOUND_VOL(ipcSound->volume & 127);
         ipcSound->chan[0].cmd &= ~SNDCMD_SETMASTERVOLUME;
-    }
-
+    } */
     // manage sounds
-    for(i = 0; i < 16; i++) {
-
-        if(ipcSound->chan[i].cmd & SNDCMD_DELAY)
+    while(1) {
+        if(soundChan->cmd & SNDCMD_DELAY)
         {
-            if(ipcSound->chan[i].snd.delay == 0) {
-                ipcSound->chan[i].cmd &= ~SNDCMD_DELAY;
-                ipcSound->chan[i].cmd |= SNDCMD_PLAY;
+            if(soundChan->snd.delay == 0) {
+                soundChan->cmd &= ~SNDCMD_DELAY;
+                soundChan->cmd |= SNDCMD_PLAY;
             } else {
-                ipcSound->chan[i].snd.delay -= 1;
+                soundChan->snd.delay -= 1;
             }
         }
-
-        if(ipcSound->chan[i].cmd & SNDCMD_STOP)
+		
+        if(soundChan->cmd & SNDCMD_STOP)
         {
             SCHANNEL_CR(i) = 0;
-            ipcSound->chan[i].cmd &= ~SNDCMD_STOP;
+            soundChan->cmd &= ~SNDCMD_STOP;
+			break;
         }
 
-        if(ipcSound->chan[i].cmd & SNDCMD_PLAY)
+        if(soundChan->cmd & SNDCMD_PLAY)
         {
-            SCHANNEL_TIMER(i) = 0x10000 - (0x1000000 / ipcSound->chan[i].snd.rate);
-            SCHANNEL_SOURCE(i) = (u32)ipcSound->chan[i].snd.data;
+            SCHANNEL_TIMER(i) = 0x10000 - (0x1000000 / soundChan->snd.rate);
+            SCHANNEL_SOURCE(i) = (u32)soundChan->snd.data;
             SCHANNEL_REPEAT_POINT(i) = 0;
-            SCHANNEL_LENGTH(i) = ipcSound->chan[i].snd.size >> 2 ;
-            SCHANNEL_CR(i) = SCHANNEL_ENABLE | ((SOUND_ONE_SHOT) >> (ipcSound->chan[i].snd.loop)) | SOUND_VOL(ipcSound->chan[i].volume & 127) | SOUND_PAN(ipcSound->chan[i].pan & 127) | ((ipcSound->chan[i].snd.format) << 29);
-            ipcSound->chan[i].cmd &= ~SNDCMD_PLAY;
+            SCHANNEL_LENGTH(i) = soundChan->snd.size >> 2 ;
+            SCHANNEL_CR(i) = SCHANNEL_ENABLE | ((SOUND_ONE_SHOT) >> (soundChan->snd.loop)) | SOUND_VOL(soundChan->volume & 127) | SOUND_PAN(soundChan->pan & 127) | ((soundChan->snd.format) << 29);
+            soundChan->cmd &= ~SNDCMD_PLAY;
         }
 
-        if(ipcSound->chan[i].cmd & SNDCMD_SETVOLUME)
+        if(soundChan->cmd & SNDCMD_SETVOLUME)
         {
-            SCHANNEL_VOL(i) = ipcSound->chan[i].volume & 127;
-            ipcSound->chan[i].cmd &= ~SNDCMD_SETVOLUME;
+            SCHANNEL_VOL(i) = soundChan->volume & 127;
+            soundChan->cmd &= ~SNDCMD_SETVOLUME;
         }
 
-        if(ipcSound->chan[i].cmd & SNDCMD_SETPAN)
+        if(soundChan->cmd & SNDCMD_SETPAN)
         {
-            SCHANNEL_PAN(i) = ipcSound->chan[i].pan & 127;
-            ipcSound->chan[i].cmd &= ~SNDCMD_SETPAN;
+            SCHANNEL_PAN(i) = soundChan->pan & 127;
+            soundChan->cmd &= ~SNDCMD_SETPAN;
         }
 
-        if(ipcSound->chan[i].cmd & SNDCMD_SETRATE)
+        if(soundChan->cmd & SNDCMD_SETRATE)
         {
-            SCHANNEL_TIMER(i) = 0x10000 - (0x1000000 / ipcSound->chan[i].snd.rate);
-            ipcSound->chan[i].cmd &= ~SNDCMD_SETRATE;
+            SCHANNEL_TIMER(i) = 0x10000 - (0x1000000 / soundChan->snd.rate);
+            soundChan->cmd &= ~SNDCMD_SETRATE;
         }
 
-        ipcSound->chan[i].busy = SCHANNEL_CR(i) >> 31;
+        soundChan->busy = SCHANNEL_CR(i) >> 31;
+		swiWaitForVBlank();
     }
 
     // manage mp3
-    if (ipcSound->mp3.cmd & MP3CMD_INIT) {
+/*     if (ipcSound->mp3.cmd & MP3CMD_INIT) {
         AS_InitMP3();
         ipcSound->mp3.cmd &= ~MP3CMD_INIT;
     }
@@ -147,9 +147,9 @@ u8 stereo;
         ipcSound->mp3.state = MP3ST_PAUSED;
 
     }
-#endif
+#endif */
 
-} */
+}
 
 // the mp3 decoding engine, must be called on a regular basis (like after VBlank)
 
@@ -419,18 +419,24 @@ void AS_SetTimer(int freq)
     hMP3Decoder = MP3InitDecoder();
 } */
 
-void AS_Init() {
+/* void AS_Initn() {
 	mp3_init();
+} */
+
+void AS_AddressHandler(void *address, void *user_data) {
+	AS_SoundVBL(address);
 }
 
-/* void AS_Init() {
+void AS_Init(IPC_SoundSystem* ipc) {
+	mp3_init();
 	REG_MASTER_VOLUME = SOUND_VOL(ipc->volume = 127);
 
     ipc->chan[0].cmd |= SNDCMD_ARM7READY;
     //while (ipc->chan[0].cmd & SNDCMD_ARM7READY);
 
-    ipcSound = ipc;
-} */
+    //ipcSound = ipc;
+	fifoSetAddressHandler(TCOMMON_FIFO_CHANNEL_ARM7, AS_AddressHandler, 0);
+}
 
 // desinterleave a stereo source (thanks to Thoduv for the code)
 /* asm (
