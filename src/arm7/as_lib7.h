@@ -130,6 +130,7 @@ typedef struct
     s8  volume;
     s8  pan;
     u8  cmd;
+	u8 chanId;
 
 } SoundChannel;
 

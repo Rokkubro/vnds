@@ -55,20 +55,21 @@ s16 audioBuf[AS_DECODEBUFFER_SIZE];     // buffer for the decoded mp3 audio
 int nAudioBufStart;
 int nAudioBuf;
 u8 stereo;
+int i;
 
 // the sound engine, must be called each VBlank
  void AS_SoundVBL(SoundChannel *soundChan) {
 	if (!soundChan){
 		return;
 	}
-    int i = getFreeChannel();
+    int i = soundChan->chanId;
     // adjust master volume
 /*     if (ipcSound->chan[0].cmd & SNDCMD_SETMASTERVOLUME) {
     	REG_MASTER_VOLUME = SOUND_VOL(ipcSound->volume & 127);
         ipcSound->chan[0].cmd &= ~SNDCMD_SETMASTERVOLUME;
     } */
     // manage sounds
-    while(1) {
+    while(soundChan->cmd!=0) {
         if(soundChan->cmd & SNDCMD_DELAY)
         {
             if(soundChan->snd.delay == 0) {
@@ -83,7 +84,6 @@ u8 stereo;
         {
             SCHANNEL_CR(i) = 0;
             soundChan->cmd &= ~SNDCMD_STOP;
-			break;
         }
 
         if(soundChan->cmd & SNDCMD_PLAY)

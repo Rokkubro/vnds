@@ -230,7 +230,7 @@ int mp3_resume() {
 	MP3GetLastFrameInfo(hMP3Decoder, &mp3FrameInfo);
 	mp3->rate = mp3FrameInfo.samprate;
 	
-	mp3_channel = getFreeChannel();
+	mp3_channel = 15;
 	//mp3->audio[4] = mp3->audio[5] = 0x7fff;	// force a pop for debugging
 	SCHANNEL_SOURCE(mp3_channel) = (u32)mp3->audio;
 	SCHANNEL_REPEAT_POINT(mp3_channel) = 0;

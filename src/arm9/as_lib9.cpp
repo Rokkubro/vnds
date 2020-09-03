@@ -37,10 +37,10 @@ u8* mp3filebuffer = NULL;
 u8 as_default_format;
 s32 as_default_rate;
 u8 as_default_delay;
-void *uncached_mallocIpc(size_t count) {
+/* void *uncached_mallocIpc(size_t count) {
 	void *p = malloc(count);
 	return ((p == 0) ? 0 : memUncached(p));
-}
+} */
 // initialize the ASLib
 void AS_Init(u8 mode, u32 mp3BufferSize) {
 	//Set up memory in a non-cache area
@@ -162,7 +162,7 @@ int AS_SoundPlay(SoundInfo sound)
     int i, free_ch = -1, minp_ch = -1;
 
     // search a free channel
-    for(i = 0; i < 15; i++) {
+    for(i = 1; i < 15; i++) {
         if(!(ipcSound->chan[i].reserved || ipcSound->chan[i].busy))
             free_ch = i;
     }
@@ -177,7 +177,7 @@ int AS_SoundPlay(SoundInfo sound)
     } else {
 
         // find the channel with the least priority
-        for(i = 0; i < 15; i++) {
+        for(i = 1; i < 15; i++) {
             if(!ipcSound->chan[i].reserved) {
                 if(minp_ch == -1)
                     minp_ch = i;
@@ -234,6 +234,7 @@ void AS_SetSoundPan(u8 chan, u8 pan)
         ipcSound->chan[chan].pan = pan;
 
     }
+	ipcSound->chan[chan].chanId = chan;
 }
 
 // set the volume of a sound (0..127)
@@ -246,6 +247,7 @@ void AS_SetSoundVolume(u8 chan, u8 volume)
         ipcSound->chan[chan].volume = volume;
         ipcSound->chan[chan].cmd |= SNDCMD_SETVOLUME;
     }
+	ipcSound->chan[chan].chanId = chan;
 }
 
 // set the sound sample rate
@@ -253,6 +255,7 @@ void AS_SetSoundRate(u8 chan, u32 rate)
 {
     ipcSound->chan[chan].snd.rate = rate;
     ipcSound->chan[chan].cmd |= SNDCMD_SETRATE;
+	ipcSound->chan[chan].chanId = chan;
 
     if(ipcSound->surround) {
         ipcSound->chan[chan + ipcSound->num_chan].snd.rate = rate;
@@ -268,8 +271,8 @@ void AS_SoundDirectPlay(u8 chan, SoundInfo sound)
     ipcSound->chan[chan].cmd = SNDCMD_PLAY;
     ipcSound->chan[chan].volume = sound.volume;
     ipcSound->chan[chan].pan = sound.pan;
+	ipcSound->chan[chan].chanId = chan;
 	
-	fifoSendAddress(TCOMMON_FIFO_CHANNEL_ARM7, ipcSound->chan + chan);
 
     if(ipcSound->surround) {
         ipcSound->chan[chan + ipcSound->num_chan].snd = sound;
@@ -379,6 +382,11 @@ void AS_MP3StreamPlay(FileHandle* fh, u8 loop){
 // regenerate buffers for mp3 stream, must be called each VBlank (only needed if mp3 is used)
 void AS_SoundVBL()
 {
+	int chan;
+	for(chan = 1; chan<15; chan++){
+		if(ipcSound->chan[chan].cmd!=0 && ipcSound->chan[chan].chanId == chan)
+		fifoSendAddress(TCOMMON_FIFO_CHANNEL_ARM7, ipcSound->chan + chan);
+	}
 	AS_MP3FillBuffer(ipcSound->mp3.mp3buffer + AS_FILEBUFFER_SIZE, AS_FILEBUFFER_SIZE);
 }
 /* void AS_SoundVBL()
@@ -439,6 +447,8 @@ void AS_SoundStop(u8 chan) {
 
     if(ipcSound->surround)
     	ipcSound->chan[chan + ipcSound->num_chan].cmd = SNDCMD_STOP;
+	
+	ipcSound->chan[chan].chanId = chan;
 }
 
 /// pause an mp3
