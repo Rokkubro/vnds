@@ -69,7 +69,7 @@ void timerOverflow() {
             } else {
                 if (bufferStopPos >= 0) {
                     if (oldReadPos < bufferStopPos && bufferReadPos >= bufferStopPos) {
-                        playing = false;
+						playing = false;
                         //iprintf("finished");
                     }
                 }
@@ -203,7 +203,7 @@ void AACPlayer::FillBuffer() {
 
     //Keep some extra distance because of the inaccurate way the bufferReadPos
     //is calculated/updated.
-    int space = BUFFER_SIZE / 4;//BUFFER_SIZE / 3;
+    int space = BUFFER_SIZE / 2;//BUFFER_SIZE / 3;
     if (writeBufferLeft < FRAME_SIZE + space) {
         return;
     }

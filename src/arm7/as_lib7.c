@@ -69,7 +69,6 @@ int i;
         ipcSound->chan[0].cmd &= ~SNDCMD_SETMASTERVOLUME;
     } */
     // manage sounds
-    while(soundChan->cmd!=0) {
         if(soundChan->cmd & SNDCMD_DELAY)
         {
             if(soundChan->snd.delay == 0) {
@@ -115,8 +114,6 @@ int i;
         }
 
         soundChan->busy = SCHANNEL_CR(i) >> 31;
-		swiWaitForVBlank();
-    }
 
     // manage mp3
 /*     if (ipcSound->mp3.cmd & MP3CMD_INIT) {

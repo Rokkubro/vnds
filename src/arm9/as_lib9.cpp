@@ -204,6 +204,7 @@ int AS_SoundPlay(SoundInfo sound)
 // set the panning of a sound (0=left, 64=center, 127=right)
 void AS_SetSoundPan(u8 chan, u8 pan)
 {
+	ipcSound->chan[chan].chanId = chan;
     ipcSound->chan[chan].snd.pan = pan;
 
     if(ipcSound->surround) {
@@ -234,12 +235,12 @@ void AS_SetSoundPan(u8 chan, u8 pan)
         ipcSound->chan[chan].pan = pan;
 
     }
-	ipcSound->chan[chan].chanId = chan;
 }
 
 // set the volume of a sound (0..127)
 void AS_SetSoundVolume(u8 chan, u8 volume)
 {
+	ipcSound->chan[chan].chanId = chan;
     if(ipcSound->surround) {
         ipcSound->chan[chan].snd.volume = volume * AS_BASE_VOLUME / 127;
         AS_SetSoundPan(chan, ipcSound->chan[chan].snd.pan);
@@ -247,15 +248,14 @@ void AS_SetSoundVolume(u8 chan, u8 volume)
         ipcSound->chan[chan].volume = volume;
         ipcSound->chan[chan].cmd |= SNDCMD_SETVOLUME;
     }
-	ipcSound->chan[chan].chanId = chan;
 }
 
 // set the sound sample rate
 void AS_SetSoundRate(u8 chan, u32 rate)
 {
+	ipcSound->chan[chan].chanId = chan;
     ipcSound->chan[chan].snd.rate = rate;
     ipcSound->chan[chan].cmd |= SNDCMD_SETRATE;
-	ipcSound->chan[chan].chanId = chan;
 
     if(ipcSound->surround) {
         ipcSound->chan[chan + ipcSound->num_chan].snd.rate = rate;
@@ -266,12 +266,12 @@ void AS_SetSoundRate(u8 chan, u32 rate)
 // play a sound directly using the given channel
 void AS_SoundDirectPlay(u8 chan, SoundInfo sound)
 {
+	ipcSound->chan[chan].chanId = chan;
     ipcSound->chan[chan].snd = sound;
     ipcSound->chan[chan].busy = true;
     ipcSound->chan[chan].cmd = SNDCMD_PLAY;
     ipcSound->chan[chan].volume = sound.volume;
     ipcSound->chan[chan].pan = sound.pan;
-	ipcSound->chan[chan].chanId = chan;
 	
 
     if(ipcSound->surround) {
@@ -443,12 +443,13 @@ int AS_SoundDefaultPlay(u8 *data, u32 size, u8 volume, s8 pan, u8 loop, u8 prio)
 
 /// stop playing a sound
 void AS_SoundStop(u8 chan) {
+	swiWaitForVBlank();
+	ipcSound->chan[chan].chanId = chan;
 	ipcSound->chan[chan].cmd = SNDCMD_STOP;
 
     if(ipcSound->surround)
     	ipcSound->chan[chan + ipcSound->num_chan].cmd = SNDCMD_STOP;
 	
-	ipcSound->chan[chan].chanId = chan;
 }
 
 /// pause an mp3
